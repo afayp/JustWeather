@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#3F51B5</color>
+    <color name="colorPrimaryDark">#303F9F</color>
+    <color name="colorAccent">#FF4081</color>
+    <color name="linechardown">#0d91f5</color>
+    <color name="linecharup">#d22705</color>
+    <color name="openItem">#d90b1c</color>
+    <color name="about_bg">#BFBFBF</color>
+</resources>
