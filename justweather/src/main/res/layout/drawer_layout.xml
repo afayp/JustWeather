@@ -50,7 +50,7 @@
             android:layout_gravity="center_vertical"
             android:layout_marginEnd="20dp"
             android:layout_marginRight="52dp"
-            android:src="@mipmap/add"/>
+            android:src="@mipmap/add_white"/>
 
 
 
@@ -78,7 +78,7 @@
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
-            android:background="#FF05D2A9"
+            android:background="#bcbbb6"
             android:orientation="horizontal">
 
             <RelativeLayout
@@ -93,7 +93,7 @@
                     android:layout_centerInParent="true"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:clickable="true"
-                    android:src="@mipmap/setting" />
+                    android:src="@mipmap/setting_white" />
                 <View
                     android:id="@+id/view"
                     android:layout_width="1px"
@@ -114,7 +114,7 @@
                     android:layout_centerInParent="true"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:clickable="true"
-                    android:src="@mipmap/about" />
+                    android:src="@mipmap/about_white" />
             </RelativeLayout>
 
 
