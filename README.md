@@ -10,4 +10,5 @@
 ![](screenshorts/s4.png)
 
 ![](screenshorts/s5.png)
+![](screenshorts/GIF.gif)
 
