@@ -193,7 +193,6 @@ public class MainActivity extends AppCompatActivity {
     //初始化drawer,从数据库里读取城市列表;
     //TODO 处理滑动冲突
     private void setUpDrawer() {
-        L.e("setUpDrawer");
         RealmResults<SavedCity> allSavedCitys = realm.where(SavedCity.class).findAll();
         allSavedCitys.sort("isSelected", Sort.DESCENDING);//把选中的当前城市排第一个
         final List<SavedCity> cities = new ArrayList<>();
@@ -292,6 +291,7 @@ public class MainActivity extends AppCompatActivity {
         iv_about.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                mDrawerLayout.closeDrawer(GravityCompat.START);
                 showAboutWindow();
             }
         });
@@ -305,7 +305,7 @@ public class MainActivity extends AppCompatActivity {
                 mCurrentCity = c;
             }
         }
-        L.e("mCurrentCity: "+mCurrentCity.getCityName());
+        L.d("mCurrentCity: "+mCurrentCity.getCityName());
 //        有网就从网上加载，没网就本地读取
         if (HttpUtils.isConnected(MainActivity.this)) {
             if (mCurrentCity.getWeatherId() != null) {
@@ -333,9 +333,6 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 //第一次进来，数据库还没城市
                 Toast.makeText(MainActivity.this, "快去添加城市吧！", Toast.LENGTH_SHORT).show();
-//                Message msg = handler.obtainMessage();
-//                msg.what = 1;
-//                handler.sendMessage(msg);
                 setUpDrawer();
                 initDataToView();
             }
@@ -344,11 +341,8 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(MainActivity.this, "当前没有网络，数据可能过期！", Toast.LENGTH_SHORT).show();
             setUpDrawer();
             initDataToView();
-//            Message msg = handler.obtainMessage();
-//            msg.what = 1;
-//            handler.sendMessage(msg);
         }
-        mSwipeRefreshLayout.setRefreshing(false);
+
     }
 
     private void initDataToView() {
@@ -377,7 +371,7 @@ public class MainActivity extends AppCompatActivity {
             }
             showChart(fuckTempList);
         }
-
+        mSwipeRefreshLayout.setRefreshing(false);
     }
 
     @Override
@@ -432,7 +426,6 @@ public class MainActivity extends AppCompatActivity {
             case R.id.refresh:
                 mSwipeRefreshLayout.setRefreshing(true);
                 initData();
-                mSwipeRefreshLayout.setRefreshing(false);
                 break;
         }
         return super.onOptionsItemSelected(item);
@@ -448,10 +441,10 @@ public class MainActivity extends AppCompatActivity {
         List<PointValue> valuesUp = new ArrayList<PointValue>();
         List<PointValue> valuesDown = new ArrayList<PointValue>();
         for (int i = 0; i < 10; i = i + 2) {
-            valuesUp.add(new PointValue(i / 2, tempList.get(i)));
+            valuesUp.add(new PointValue(i / 2, 0));
         }
         for (int i = 1; i < 10; i = i + 2) {
-            valuesDown.add(new PointValue((i - 1) / 2, tempList.get(i)));
+            valuesDown.add(new PointValue((i - 1) / 2, 0));
         }
         Line lineUp = new Line(valuesUp).setColor(getResources().getColor(R.color.linecharup)).setCubic(true);
         Line lineDown = new Line(valuesDown).setColor(getResources().getColor(R.color.linechardown)).setCubic(true);
@@ -471,6 +464,7 @@ public class MainActivity extends AppCompatActivity {
         //确定几条线
         lines.add(lineUp);
         lines.add(lineDown);
+
         LineChartData data = new LineChartData(lines);
 //        data.setLines(lines);
         //坐标轴:
@@ -510,6 +504,7 @@ public class MainActivity extends AppCompatActivity {
         axisY.setValues(axisYValues);
         data.setAxisYLeft(axisY);
         //设置行为属性，支持缩放、滑动以及平移
+        lineChartView.startDataAnimation(2000);
         lineChartView.setInteractive(false);
         lineChartView.setContainerScrollEnabled(false, ContainerScrollType.HORIZONTAL);
         lineChartView.setLineChartData(data);
@@ -522,8 +517,24 @@ public class MainActivity extends AppCompatActivity {
         lineChartView.setCurrentViewport(v);
         lineChartView.setZoomType(ZoomType.HORIZONTAL);
 
-//        chart.startDataAnimation(3000);
-////        chart.setAnimation();
+        Line newLineUp  = data.getLines().get(0).setColor(getResources().getColor(R.color.linecharup)).setCubic(true);
+        Line newLineDown = data.getLines().get(1).setColor(getResources().getColor(R.color.linechardown)).setCubic(true);
+        List<Integer> upList = new ArrayList<>();
+        List<Integer> downList = new ArrayList<>();
+        for(int i =0;i <tempList.size();i++){
+            if(i%2 == 0){
+                upList.add(tempList.get(i));
+            }else{
+                downList.add(tempList.get(i));
+            }
+        }
+        for(PointValue value :newLineUp.getValues()){
+            value.setTarget(value.getX(),upList.get((int)value.getX()));
+        }
+        for (PointValue value :newLineDown.getValues()){
+            value.setTarget(value.getX(),downList.get((int) value.getX()));
+        }
+        lineChartView.startDataAnimation(1500);
     }
 
     private int getMaxY(List<Integer> tempList) {
@@ -571,7 +582,7 @@ public class MainActivity extends AppCompatActivity {
         tv_dizhi.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Uri uri = Uri.parse("https://github.com/afayp/Gank");
+                Uri uri = Uri.parse("https://github.com/afayp/JustWeather");
                 Intent intent  = new Intent(Intent.ACTION_VIEW, uri);
                 startActivity(intent);
             }
@@ -579,7 +590,7 @@ public class MainActivity extends AppCompatActivity {
         tv_author.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Uri uri = Uri.parse("https://github.com/afayp/Gank");
+                Uri uri = Uri.parse("https://github.com/afayp/JustWeather");
                 Intent intent  = new Intent(Intent.ACTION_VIEW, uri);
                 startActivity(intent);
             }

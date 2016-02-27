@@ -15,10 +15,4 @@ public class ApplicationTest extends ApplicationTestCase<Application> {
         super(Application.class);
     }
 
-    public void testDB(){
-        Context context = getContext();
-        ArrayList<String> provinceList = CityQueryDao.getProvinceList(context);
-        String result = provinceList.toString();
-        Log.d("JustWeather" , result);
-    }
 }

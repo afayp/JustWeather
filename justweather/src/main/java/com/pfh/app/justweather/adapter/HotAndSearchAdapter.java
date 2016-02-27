@@ -9,6 +9,7 @@ import android.widget.BaseAdapter;
 import android.widget.TextView;
 
 import com.pfh.app.justweather.R;
+import com.pfh.app.justweather.utils.L;
 
 import java.util.ArrayList;
 import java.util.List;

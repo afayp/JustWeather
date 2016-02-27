@@ -30,13 +30,9 @@
 
             </intent-filter>
         </activity>
-        <activity android:name=".activity.SelectedCityManagerActivity" />
         <activity android:name=".activity.SettingActivity" />
-        <activity android:name=".activity.CityChooseActivity" />
-        <activity android:name=".activity.TestActivity">
-
-
-        </activity>
+        <activity android:name=".activity.CityChooseActivity"
+            android:screenOrientation="portrait"/>
     </application>
 
 </manifest>

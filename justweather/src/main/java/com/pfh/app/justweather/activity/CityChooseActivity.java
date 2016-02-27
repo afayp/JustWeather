@@ -148,8 +148,7 @@ public class CityChooseActivity extends AppCompatActivity {
                     //删除了键入的值后要还原显示热门城市
                     tv_list_state.setText("热门城市");
                     initHotCity();
-                    L.e(hotAndSearchCityList.toString());
-                    //TODO 为什么便不会来的了。。
+                    //TODO 传数据过去不能正确给mCityList赋值？？
                 }
                 hotAndSearchAdapter.refreshData(hotAndSearchCityList);
             }

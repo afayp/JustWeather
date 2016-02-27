@@ -117,27 +117,27 @@
                         android:src="@mipmap/cloudy1"
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
-                        android:layout_weight="1"/>
+                        android:layout_weight="0.158"/>
                     <ImageView
                         android:src="@mipmap/sunny"
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
-                        android:layout_weight="1"/>
+                        android:layout_weight="0.263"/>
                     <ImageView
                         android:src="@mipmap/overcast"
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
-                        android:layout_weight="1"/>
+                        android:layout_weight="0.158"/>
                     <ImageView
                         android:src="@mipmap/cloudy1"
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
-                        android:layout_weight="1"/>
+                        android:layout_weight="0.289"/>
                     <ImageView
                         android:src="@mipmap/sunny"
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
-                        android:layout_weight="1"/>
+                        android:layout_weight="0.132"/>
                 </LinearLayout>
             </LinearLayout>
 
