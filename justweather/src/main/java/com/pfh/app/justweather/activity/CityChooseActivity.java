@@ -257,7 +257,6 @@ public class CityChooseActivity extends AppCompatActivity {
         }
         String weatherId = CityQueryDao.getWeatherIdByAreaName(CityChooseActivity.this, selectedCityName);
         SavedCity savedCity = new SavedCity(selectedCityName, weatherId, true);
-        L.e(savedCity.getCityName() + savedCity.getWeatherId());
         RealmResults<SavedCity> savedCitys = realm.where(SavedCity.class).equalTo("isSelected", true).findAll();
         realm.beginTransaction();
         for(int i = savedCitys.size() -1; i >=0; i--){

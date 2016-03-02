@@ -10,6 +10,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
+import android.support.design.widget.Snackbar;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -224,7 +225,6 @@ public class MainActivity extends AppCompatActivity {
                 switch (index) {
                     case 0:
                         SavedCity city = (SavedCity) drawerListAdapter.getItem(position);
-                        L.e("滑动了" + city.getCityName() + "mcurrentCity:" + mCurrentCity.getCityName());
 //                        Toast.makeText(MainActivity.this, "滑动了" + city.getCityName()+"mcurrentCity:"+mCurrentCity.getCityName(), Toast.LENGTH_LONG).show();
                         //删除数据库对应城市，删除前先判断是否是当前城市，如果不是直接删;如果是把下一个savedCity.setSelected(true),mCurrentCity换一个
                         if (mCurrentCity.getCityName().equals(city.getCityName())) {
@@ -244,7 +244,6 @@ public class MainActivity extends AppCompatActivity {
                             }
                             RealmUtils.deleteCity(realm, city);
                             mCurrentCity = new SavedCity();
-                            L.e("mCurrentcity变了"+mCurrentCity.getCityName());
                             initData();
                         } else {
                             //如果删除的不是当前城市，只需更新drawer
@@ -305,7 +304,6 @@ public class MainActivity extends AppCompatActivity {
                 mCurrentCity = c;
             }
         }
-        L.d("mCurrentCity: "+mCurrentCity.getCityName());
 //        有网就从网上加载，没网就本地读取
         if (HttpUtils.isConnected(MainActivity.this)) {
             if (mCurrentCity.getWeatherId() != null) {
@@ -435,16 +433,14 @@ public class MainActivity extends AppCompatActivity {
      * @param tempList
      */
     private void showChart(List<Integer> tempList) {
-        L.e("showchart!开始");
-        L.e(tempList.toString());
         //两组坐标点：今后5天的最高温和最低温
         List<PointValue> valuesUp = new ArrayList<PointValue>();
         List<PointValue> valuesDown = new ArrayList<PointValue>();
         for (int i = 0; i < 10; i = i + 2) {
-            valuesUp.add(new PointValue(i / 2, 0));
+            valuesUp.add(new PointValue(i / 2, getMinY(tempList)));
         }
         for (int i = 1; i < 10; i = i + 2) {
-            valuesDown.add(new PointValue((i - 1) / 2, 0));
+            valuesDown.add(new PointValue((i - 1) / 2, getMinY(tempList)));
         }
         Line lineUp = new Line(valuesUp).setColor(getResources().getColor(R.color.linecharup)).setCubic(true);
         Line lineDown = new Line(valuesDown).setColor(getResources().getColor(R.color.linechardown)).setCubic(true);
@@ -512,7 +508,7 @@ public class MainActivity extends AppCompatActivity {
         lineChartView.setViewportCalculationEnabled(false);
         int maxY = getMaxY(tempList);
         int minY = getMinY(tempList);
-        Viewport v = new Viewport(0, maxY + 5, 4.2f, minY - 1.5f);
+        Viewport v = new Viewport(0, maxY + 8, 4.2f, minY - 1.5f);
         lineChartView.setMaximumViewport(v);
         lineChartView.setCurrentViewport(v);
         lineChartView.setZoomType(ZoomType.HORIZONTAL);
