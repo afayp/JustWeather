@@ -32,6 +32,16 @@ public class RealmUtils {
         realm.commitTransaction();
     }
 
+    /**
+     * 查询当前显示的城市
+     * @param realm
+     * @return
+     */
+    public static SavedCity getSelectedCity(Realm realm){
+        SavedCity savedCity = realm.where(SavedCity.class).equalTo("isSelected", true).findFirst();
+        return savedCity;
+    }
+
     public static void cancelAndSetSelected(Realm realm ,SavedCity cancelCity,SavedCity setCity){
         SavedCity cityCancel= realm.where(SavedCity.class).equalTo("cityName",cancelCity.getCityName()).findFirst();
         SavedCity citySet= realm.where(SavedCity.class).equalTo("cityName",setCity.getCityName()).findFirst();

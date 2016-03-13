@@ -43,6 +43,7 @@ public class SavedCity extends RealmObject {
     private String aqi;
     //pm2.5
     private String pm25;
+    private String pm10;
 
     public SavedCity() {
     }
@@ -52,6 +53,14 @@ public class SavedCity extends RealmObject {
         this.cityName = cityName;
         this.weatherId = weatherId;
         this.isSelected = isSelected;
+    }
+
+    public String getPm10() {
+        return pm10;
+    }
+
+    public void setPm10(String pm10) {
+        this.pm10 = pm10;
     }
 
     public String getRealTemp() {

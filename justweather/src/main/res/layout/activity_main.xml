@@ -103,16 +103,19 @@
 
                 </RelativeLayout>
 
+
                 <lecho.lib.hellocharts.view.LineChartView
                     android:id="@+id/chart"
                     android:layout_width="match_parent"
                     android:layout_height="0dp"
-                    android:layout_weight="0.332" />
+                    android:layout_weight="0.332"
+                    android:background="@color/weatherchart_bg"/>
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="0dp"
                     android:layout_weight="0.050"
-                    android:orientation="horizontal">
+                    android:orientation="horizontal"
+                    android:background="@color/weatherchart_bg">
                     <ImageView
                         android:src="@mipmap/cloudy1"
                         android:layout_width="0dp"

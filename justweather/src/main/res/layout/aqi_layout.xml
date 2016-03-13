@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_margin="10dp"
+        android:text="空气质量指数"
+        android:textColor="@color/aqi_title"
+        android:textSize="24sp"
+        android:background="@color/aqi_bg"/>
+
+    <View
+        android:id="@+id/view"
+        android:layout_width="match_parent"
+        android:layout_height="2px"
+        android:background="#2200fd11" />
+
+    <com.pfh.app.justweather.View.AqiHalfCricleChart
+        android:id="@+id/aqichart"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="@color/aqi_bg">
+
+        <RelativeLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1">
+
+            <TextView
+                android:id="@+id/textView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentTop="true"
+                android:layout_centerHorizontal="true"
+                android:paddingTop="8dp"
+                android:text="PM2.5"
+                android:textColor="@color/aqi_title"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/aqi_pm25"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/textView"
+                android:layout_centerHorizontal="true"
+                android:paddingTop="3dp"
+                android:text="165"
+                android:textColor="@color/aqi_title"
+                android:textSize="26sp" />
+
+            <View
+                android:layout_width="1px"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:background="#ffffff" />
+
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1">
+
+            <TextView
+                android:id="@+id/textView2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentTop="true"
+                android:layout_centerHorizontal="true"
+                android:paddingTop="8dp"
+                android:text="PM10"
+                android:textColor="@color/aqi_title"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/aqi_pm10"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/textView2"
+                android:layout_centerHorizontal="true"
+                android:paddingTop="3dp"
+                android:text="288"
+                android:textColor="@color/aqi_title"
+                android:textSize="26sp" />
+
+        </RelativeLayout>
+    </LinearLayout>
+
+
+</LinearLayout>

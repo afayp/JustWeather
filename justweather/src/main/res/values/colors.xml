@@ -7,4 +7,22 @@
     <color name="linecharup">#d22705</color>
     <color name="openItem">#d90b1c</color>
     <color name="about_bg">#BFBFBF</color>
+
+    <color name="background">#2e58e2</color>
+    <color name="level_one">#68CB00</color>
+    <color name="level_two">#F6E200</color>
+    <color name="level_three">#FB890F</color>
+    <color name="level_four">#DF2D00</color>
+    <color name="level_five">#B414BB</color>
+    <color name="level_six">#6F0474</color>
+    <color name="aqi_title">#ffffff</color>
+    <color name="aqi_bg">#e058c1ef</color>
+    <color name="aqi_circle">#94396299</color>
+
+    <color name="coldColor">#193cda</color>
+    <color name="warmColor">#b61616</color>
+    <color name="tempTextColor">#ffffff</color>
+    <color name="weatherTextColor">#ffffff</color>
+    <color name="weatherchart_bg">#b455cbff</color>
+
 </resources>

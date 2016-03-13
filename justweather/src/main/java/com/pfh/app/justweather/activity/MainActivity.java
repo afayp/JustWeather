@@ -1,8 +1,6 @@
 package com.pfh.app.justweather.activity;
 
 import android.annotation.TargetApi;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
@@ -10,7 +8,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
-import android.support.design.widget.Snackbar;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -18,6 +15,7 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -36,12 +34,18 @@ import com.baoyz.swipemenulistview.SwipeMenuCreator;
 import com.baoyz.swipemenulistview.SwipeMenuItem;
 import com.baoyz.swipemenulistview.SwipeMenuListView;
 import com.loopj.android.http.TextHttpResponseHandler;
+import com.pfh.app.justweather.View.AqiHalfCricleChart;
 import com.pfh.app.justweather.R;
+import com.pfh.app.justweather.View.WeatherChart;
 import com.pfh.app.justweather.adapter.DrawerListAdapter;
 import com.pfh.app.justweather.model.SavedCity;
-import com.pfh.app.justweather.utils.DensityUtils;
+import com.pfh.app.justweather.service.AutoUpdateService;
+import com.pfh.app.justweather.service.NotificationService;
+import com.pfh.app.justweather.utils.AqiUtils;
+import com.pfh.app.justweather.utils.BroadcastUtils;
 import com.pfh.app.justweather.utils.HttpUtils;
 import com.pfh.app.justweather.utils.L;
+import com.pfh.app.justweather.utils.PrefsUtils;
 import com.pfh.app.justweather.utils.RealmUtils;
 import com.pfh.app.justweather.utils.TimeUtils;
 import com.pfh.app.justweather.utils.UrlUtils;
@@ -75,8 +79,6 @@ public class MainActivity extends AppCompatActivity {
     private ImageView iv_aqi;
     private ImageView iv_setting;
     private SwipeMenuListView swipeMenuListView;
-    //0为关闭，1为打开
-    private static int currentDrawerState = 0;
     private SwipeRefreshLayout drawerSwipeRefreshLayout;
 
     private SavedCity mCurrentCity = new SavedCity();
@@ -87,9 +89,12 @@ public class MainActivity extends AppCompatActivity {
     private Handler handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
-            if(msg.what ==1){
+            if (msg.what == 1) {
                 initDataToView();
                 setUpDrawer();
+                BroadcastUtils.sendShowNotificationBroadcast(MainActivity.this);
+                L.e("handler中发送广播！");
+
             }
             super.handleMessage(msg);
         }
@@ -99,6 +104,8 @@ public class MainActivity extends AppCompatActivity {
     private LineChartView lineChartView;
     private DrawerListAdapter drawerListAdapter;
     private RelativeLayout relativeLayout;
+    private WeatherChart weatherChart;
+    private long exitTime;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -106,14 +113,17 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         realm = Realm.getDefaultInstance();
         initView();
+        initService();
         initData();
         checkTime();
     }
 
+
+
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
     private void checkTime() {
-        L.e("现在时间："+TimeUtils.getHour());
-        if(TimeUtils.getHour() >= 17){
+        L.e("现在时间：" + TimeUtils.getHour());
+        if (TimeUtils.getHour() >= 17) {
             relativeLayout.setBackground(getResources().getDrawable(R.mipmap.night_bg));
         }
     }
@@ -133,32 +143,34 @@ public class MainActivity extends AppCompatActivity {
         iv_about = (ImageView) findViewById(R.id.drawer_about);
         drawerSwipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.drawer_swipe);
         lineChartView = (LineChartView) findViewById(R.id.chart);
+//        weatherChart = (WeatherChart) findViewById(R.id.chart);
 
         mToolbar.setTitle("");
         setSupportActionBar(mToolbar);
         final ActionBar ab = getSupportActionBar();
         ab.setHomeAsUpIndicator(R.mipmap.menu2);
         ab.setDisplayHomeAsUpEnabled(true);
-//        mDrawerLayout.setDrawerListener(new DrawerLayout.SimpleDrawerListener() {
-//            @Override
-//            public void onDrawerOpened(View drawerView) {
-//                currentDrawerState = 1;
-//                super.onDrawerOpened(drawerView);
-//            }
-//
-//            @Override
-//            public void onDrawerClosed(View drawerView) {
-//                currentDrawerState = 0;
-//                super.onDrawerClosed(drawerView);
-//            }
-//        });
         setUpSwipe();
 
 //        setUpDrawer();
         mSwipeRefreshLayout.setEnabled(false);
+        iv_aqi.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showAqiWindow();
+            }
+        });
+
+        relativeLayout.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                return false;
+            }
+        });
 
 
     }
+
 
     private void setUpSwipe() {
         //主界面下拉刷新
@@ -192,17 +204,15 @@ public class MainActivity extends AppCompatActivity {
 
 
     //初始化drawer,从数据库里读取城市列表;
-    //TODO 处理滑动冲突
+    //TODO 如果左滑的话要处理滑动冲突
     private void setUpDrawer() {
         RealmResults<SavedCity> allSavedCitys = realm.where(SavedCity.class).findAll();
         allSavedCitys.sort("isSelected", Sort.DESCENDING);//把选中的当前城市排第一个
         final List<SavedCity> cities = new ArrayList<>();
-        for (SavedCity c : allSavedCitys){
+        for (SavedCity c : allSavedCitys) {
             cities.add(c);
         }
 //        realm.close();为什么close就崩了。。。
-//        List<SavedCity> cities = new ArrayList<>();
-//        cities.add(new SavedCity("东阳","111",true));
         drawerListAdapter = new DrawerListAdapter(MainActivity.this, cities);
         SwipeMenuCreator creator = new SwipeMenuCreator() {
 
@@ -229,14 +239,14 @@ public class MainActivity extends AppCompatActivity {
                         //删除数据库对应城市，删除前先判断是否是当前城市，如果不是直接删;如果是把下一个savedCity.setSelected(true),mCurrentCity换一个
                         if (mCurrentCity.getCityName().equals(city.getCityName())) {
                             RealmResults<SavedCity> all = realm.where(SavedCity.class).findAll();
-                            L.e("all.size():"+all.size());
-                            if(all.size() > 1){
+                            L.e("all.size():" + all.size());
+                            if (all.size() > 1) {
                                 //如果还有其他的，要把其他一个设为selected
                                 for (int i = all.size() - 1; i >= 0; i--) {
                                     if (all.get(i).getCityName().equals(city.getCityName())) {
-                                        if(i-1 >= 0){
-                                            RealmUtils.SetSelected(realm,all.get(i-1));
-                                        }else {
+                                        if (i - 1 >= 0) {
+                                            RealmUtils.SetSelected(realm, all.get(i - 1));
+                                        } else {
                                             RealmUtils.SetSelected(realm, all.get(i + 1));
                                         }
                                     }
@@ -283,7 +293,8 @@ public class MainActivity extends AppCompatActivity {
         iv_setting.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //TODO　打开设置activity
+                Intent intent = new Intent(MainActivity.this, SettingActivity.class);
+                startActivity(intent);
 
             }
         });
@@ -299,8 +310,8 @@ public class MainActivity extends AppCompatActivity {
 
     private void initData() {
         RealmResults<SavedCity> allSavedCitys = realm.where(SavedCity.class).findAll();
-        for (SavedCity c : allSavedCitys){
-            if(c.isSelected()){
+        for (SavedCity c : allSavedCitys) {
+            if (c.isSelected()) {
                 mCurrentCity = c;
             }
         }
@@ -315,6 +326,7 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     public void onSuccess(int statusCode, Header[] headers, String responseString) {
+                        //更新数据库的数据
                         mCurrentCity = HttpUtils.handleJosnResponse(responseString);
                         realm.beginTransaction();
                         SavedCity oldcity = realm.where(SavedCity.class).equalTo("cityName", mCurrentCity.getCityName()).findFirst();
@@ -327,12 +339,13 @@ public class MainActivity extends AppCompatActivity {
                         handler.sendMessage(msg);
                     }
                 });
-
             } else {
                 //第一次进来，数据库还没城市
                 Toast.makeText(MainActivity.this, "快去添加城市吧！", Toast.LENGTH_SHORT).show();
                 setUpDrawer();
                 initDataToView();
+                BroadcastUtils.sendShowNotificationBroadcast(MainActivity.this);
+                L.e("没有城市的情况下sendShowNotificationBroadcast！");
             }
 
         } else {
@@ -345,7 +358,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void initDataToView() {
 
-        if(mCurrentCity.getCityName() != null){
+        if (mCurrentCity.getCityName() != null) {
             tv_city.setText(mCurrentCity.getCityName());
             tv_temp.setText(mCurrentCity.getRealTemp() + "°");
             tv_weatehr.setText(mCurrentCity.getWeather());
@@ -359,15 +372,17 @@ public class MainActivity extends AppCompatActivity {
             tempList.add(mCurrentCity.getTemp6());
             L.e(tempList.toString());
             showChart(handleTemps(tempList));
-        }else {
+//            showWeatherChart(handleTemps(tempList));
+        } else {
             tv_city.setText("宇宙");
             tv_temp.setText("-273" + "°");
             tv_weatehr.setText("外太空");
             List<Integer> fuckTempList = new ArrayList<>();
-            for(int i=0;i<12;i++){
+            for (int i = 0; i < 12; i++) {
                 fuckTempList.add(0);
             }
             showChart(fuckTempList);
+//            showWeatherChart(fuckTempList);
         }
         mSwipeRefreshLayout.setRefreshing(false);
     }
@@ -376,14 +391,34 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
 //        initData();
         super.onResume();
+//        BroadcastUtils.sendShowNotificationBroadcast(this);
+//        L.e("onresume中sendShowNotificationBroadcast");
     }
+
+    /**
+     *判断是否要开启notification和自动更新
+     */
+    private void initService() {
+        L.e("initService!");
+        if(PrefsUtils.isShowNotification(this)){
+            Intent intent = new Intent(this, NotificationService.class);
+            startService(intent);
+            L.e("main中NotificationService启动了");
+        }
+        if(PrefsUtils.isAutoUpdate(this)){
+            Intent intent = new Intent(this, AutoUpdateService.class);
+            startService(intent);
+            L.e("main中AutoupdateService启动了");
+        }
+    }
+
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        switch (requestCode){
+        switch (requestCode) {
             case 1:
-                if(resultCode == RESULT_OK){
-                    if(data.getBooleanExtra("hasSelected",false)){
+                if (resultCode == RESULT_OK) {
+                    if (data.getBooleanExtra("hasSelected", false)) {
                         initData();
                     }
 
@@ -392,22 +427,6 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    //    @Override
-//    public boolean onTouchEvent(MotionEvent event) {
-//        int drawerX = DensityUtils.dp2px(MainActivity.this, 310);
-//        float x = event.getX();
-//        if(x < drawerX && currentDrawerState == 1){
-////            mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
-//            mDrawerLayout.openDrawer(GravityCompat.START);
-////            mDrawerLayout.setEnabled(false);
-////            return false;
-//        }else {
-//            mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
-//
-////            return false;
-//        }
-//        return super.onTouchEvent(event);
-//    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -427,6 +446,22 @@ public class MainActivity extends AppCompatActivity {
                 break;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void showWeatherChart(List<Integer> tempList) {
+        Log.e("111","showWeatherChart 开始");
+        List<Integer> cold = new ArrayList<>();
+        List<Integer> warm = new ArrayList<>();
+        for (int i = 0; i < 10; i = i + 2) {
+            warm.add(tempList.get(i));
+        }
+        for (int i = 1; i < 10; i = i + 2) {
+            cold.add(tempList.get(i));
+        }
+        Log.e("111","cold数据:"+ cold.toString());
+        Log.e("111","warm数据:"+ warm.toString());
+        weatherChart.setData(cold,warm);
+
     }
 
     /**
@@ -513,24 +548,25 @@ public class MainActivity extends AppCompatActivity {
         lineChartView.setCurrentViewport(v);
         lineChartView.setZoomType(ZoomType.HORIZONTAL);
 
-        Line newLineUp  = data.getLines().get(0).setColor(getResources().getColor(R.color.linecharup)).setCubic(true);
+        Line newLineUp = data.getLines().get(0).setColor(getResources().getColor(R.color.linecharup)).setCubic(true);
         Line newLineDown = data.getLines().get(1).setColor(getResources().getColor(R.color.linechardown)).setCubic(true);
         List<Integer> upList = new ArrayList<>();
         List<Integer> downList = new ArrayList<>();
-        for(int i =0;i <tempList.size();i++){
-            if(i%2 == 0){
+        for (int i = 0; i < tempList.size(); i++) {
+            if (i % 2 == 0) {
                 upList.add(tempList.get(i));
-            }else{
+            } else {
                 downList.add(tempList.get(i));
             }
         }
-        for(PointValue value :newLineUp.getValues()){
-            value.setTarget(value.getX(),upList.get((int)value.getX()));
+        for (PointValue value : newLineUp.getValues()) {
+            value.setTarget(value.getX(), upList.get((int) value.getX()));
         }
-        for (PointValue value :newLineDown.getValues()){
-            value.setTarget(value.getX(),downList.get((int) value.getX()));
+        for (PointValue value : newLineDown.getValues()) {
+            value.setTarget(value.getX(), downList.get((int) value.getX()));
         }
         lineChartView.startDataAnimation(1500);
+
     }
 
     private int getMaxY(List<Integer> tempList) {
@@ -572,14 +608,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showAboutWindow() {
-        View aboutView = LayoutInflater.from(MainActivity.this).inflate(R.layout.about_layout,null);
+        View aboutView = LayoutInflater.from(MainActivity.this).inflate(R.layout.about_layout, null);
         TextView tv_dizhi = (TextView) aboutView.findViewById(R.id.github_dizhi);
         TextView tv_author = (TextView) aboutView.findViewById(R.id.github_author);
         tv_dizhi.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Uri uri = Uri.parse("https://github.com/afayp/JustWeather");
-                Intent intent  = new Intent(Intent.ACTION_VIEW, uri);
+                Intent intent = new Intent(Intent.ACTION_VIEW, uri);
                 startActivity(intent);
             }
         });
@@ -587,25 +623,62 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Uri uri = Uri.parse("https://github.com/afayp/JustWeather");
-                Intent intent  = new Intent(Intent.ACTION_VIEW, uri);
+                Intent intent = new Intent(Intent.ACTION_VIEW, uri);
                 startActivity(intent);
             }
         });
 
         PopupWindow popupWindow = new PopupWindow(aboutView, ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT,true);
+                ViewGroup.LayoutParams.WRAP_CONTENT, true);
         popupWindow.setFocusable(true);
         popupWindow.setBackgroundDrawable(new ColorDrawable(getResources().getColor(R.color.about_bg)));
+        popupWindow.showAtLocation(mDrawerLayout, Gravity.CENTER, 0, 0);
+    }
+
+    //弹出aqi窗口
+    private void showAqiWindow() {
+        View aqiView = LayoutInflater.from(this).inflate(R.layout.aqi_layout, null);
+        AqiHalfCricleChart aqiHalfCricleChart = (AqiHalfCricleChart) aqiView.findViewById(R.id.aqichart);
+        TextView tvPm25 = (TextView) aqiView.findViewById(R.id.aqi_pm25);
+        TextView tvPm10 = (TextView) aqiView.findViewById(R.id.aqi_pm10);
+        int aqiValue = Integer.parseInt(mCurrentCity.getAqi());
+        aqiHalfCricleChart.setMaxValue(500);
+        aqiHalfCricleChart.setValue(aqiValue);
+        aqiHalfCricleChart.setLevelText(AqiUtils.getLevelText(aqiValue));
+        tvPm25.setText(mCurrentCity.getPm25());
+        tvPm10.setText(mCurrentCity.getPm10());
+//        PopupWindow popupWindow = new PopupWindow(aqiView, ViewGroup.LayoutParams.WRAP_CONTENT,
+//                ViewGroup.LayoutParams.WRAP_CONTENT,true);
+        PopupWindow popupWindow = new PopupWindow(aqiView, 4 * mDrawerLayout.getWidth() / 5,
+                mDrawerLayout.getHeight() / 2, true);
+        popupWindow.setFocusable(true);
+        popupWindow.setBackgroundDrawable(new ColorDrawable(getResources().getColor(R.color.aqi_bg)));
         popupWindow.showAtLocation(mDrawerLayout, Gravity.CENTER, 0, 0);
     }
 
 
     @Override
     protected void onDestroy() {
-        if(realm != null){
+        if (realm != null) {
             realm.close();
         }
         super.onDestroy();
     }
+
+    @Override
+    public void onBackPressed() {
+        if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
+            mDrawerLayout.closeDrawers();
+            return;
+        }
+        if((System.currentTimeMillis()-exitTime) > 2000){
+            Toast.makeText(this,"再按一次退出",Toast.LENGTH_SHORT).show();
+            exitTime = System.currentTimeMillis();
+        } else {
+            finish();
+        }
+    }
+
+
 
 }

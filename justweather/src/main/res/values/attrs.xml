@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="MyCustomView">
+        <attr name="itemcheckbox_title" format="string|reference" />
+        <attr name="itemcheckbox_desc_on" format="string|reference" />
+        <attr name="itemcheckbox_desc_off" format="string|reference" />
+
+        <attr name="itemselectview_title" format="string|reference"/>
+        <attr name="itemselectview_desc" format="string|reference"/>
+    </declare-styleable>
+</resources>

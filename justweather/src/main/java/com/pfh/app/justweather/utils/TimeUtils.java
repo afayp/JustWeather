@@ -10,7 +10,6 @@ import java.util.List;
 /**
  * TimeUtils
  *
- * @author <a href="http://www.trinea.cn" target="_blank">Trinea</a> 2013-8-24
  */
 public class TimeUtils {
 

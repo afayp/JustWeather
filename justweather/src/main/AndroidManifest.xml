@@ -29,10 +29,19 @@
                 <category android:name="android.intent.category.LAUNCHER" />
 
             </intent-filter>
+
         </activity>
-        <activity android:name=".activity.SettingActivity" />
+        <activity android:name=".activity.SettingActivity" >
+
+
+        </activity>>
+
         <activity android:name=".activity.CityChooseActivity"
             android:screenOrientation="portrait"/>
+        <service android:name=".service.NotificationService"/>
+        <service android:name=".service.AutoUpdateService"/>
+        <receiver android:name=".receiver.AutoUpdateReceiver">
+        </receiver>
     </application>
 
 </manifest>

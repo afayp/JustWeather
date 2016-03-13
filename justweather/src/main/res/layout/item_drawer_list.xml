@@ -35,7 +35,7 @@
         android:layout_marginRight="10dp"
         android:layout_centerVertical="true"
         android:text="18°"
-        android:textSize="18sp"
+        android:textSize="20sp"
         android:visibility="invisible"/>
 
     <ImageView
@@ -43,7 +43,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
-        android:src="@mipmap/gou"
+        android:src="@mipmap/arrow_now_city"
         android:scaleType="fitCenter"
         android:layout_alignParentLeft="true"
         android:layout_marginLeft="15dp"
@@ -56,6 +56,8 @@
         android:layout_alignParentBottom="true"
         android:layout_marginLeft="25dp"
         android:layout_marginRight="25dp"
-        android:background="#22000000" />
+        android:background="#ffffff"
+        android:paddingLeft="5dp"
+        android:paddingRight="5dp"/>
 
 </RelativeLayout>

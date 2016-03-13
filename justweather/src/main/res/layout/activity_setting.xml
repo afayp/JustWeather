@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/setting_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+        app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        app:titleTextColor="@android:color/white" />
+
+    <com.pfh.app.justweather.View.MyItemCheckBox
+        android:id="@+id/item_notification"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="5dp"
+        app:itemcheckbox_title="通知栏显示"
+        app:itemcheckbox_desc_on="已开启"
+        app:itemcheckbox_desc_off="已关闭"/>
+
+    <com.pfh.app.justweather.View.MyItemCheckBox
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/item_is_update"
+        android:layout_margin="5dp"
+        app:itemcheckbox_title="后台自动跟新"
+        app:itemcheckbox_desc_on="已开启"
+        app:itemcheckbox_desc_off="已关闭"/>
+
+    <com.pfh.app.justweather.View.MyItemSelectView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/item_update_time"
+        app:itemselectview_title="更新频率"
+        app:itemselectview_desc="30分钟"
+        android:layout_margin="5dp"
+        />
+
+
+
+
+
+</LinearLayout>

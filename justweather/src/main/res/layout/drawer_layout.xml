@@ -9,12 +9,12 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="150dp"
-        android:background="@android:color/holo_blue_dark"
+        android:background="#e058c1ef"
         android:paddingBottom="10dp">
 
         <ImageView
-            android:layout_width="72dp"
-            android:layout_height="72dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_centerInParent="true"
             android:background="@mipmap/icon"
             android:scaleType="fitCenter" />
@@ -93,13 +93,13 @@
                     android:layout_centerInParent="true"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:clickable="true"
-                    android:src="@mipmap/setting_white" />
+                    android:src="@mipmap/ic_settings" />
                 <View
                     android:id="@+id/view"
-                    android:layout_width="1px"
+                    android:layout_width="2px"
                     android:layout_height="match_parent"
                     android:layout_alignParentRight="true"
-                    android:background="#22000000" />
+                    android:background="#2e58e2" />
             </RelativeLayout>
 
             <RelativeLayout
