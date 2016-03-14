@@ -90,10 +90,11 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void handleMessage(Message msg) {
             if (msg.what == 1) {
+                L.e("Main 收到msg！");
                 initDataToView();
                 setUpDrawer();
                 BroadcastUtils.sendShowNotificationBroadcast(MainActivity.this);
-                L.e("handler中发送广播！");
+                L.e("Main handler中发送广播！");
 
             }
             super.handleMessage(msg);
@@ -106,9 +107,11 @@ public class MainActivity extends AppCompatActivity {
     private RelativeLayout relativeLayout;
     private WeatherChart weatherChart;
     private long exitTime;
+    private ImageView iv_loading_chart;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        L.e("MainActivity onCreate!");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         realm = Realm.getDefaultInstance();
@@ -129,6 +132,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initView() {
+        L.e("MainActivity initView!");
         relativeLayout = (RelativeLayout) findViewById(R.id.bg);
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawerlayout);
         mToolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -144,6 +148,7 @@ public class MainActivity extends AppCompatActivity {
         drawerSwipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.drawer_swipe);
         lineChartView = (LineChartView) findViewById(R.id.chart);
 //        weatherChart = (WeatherChart) findViewById(R.id.chart);
+        iv_loading_chart = (ImageView) findViewById(R.id.iv_loading_chart);
 
         mToolbar.setTitle("");
         setSupportActionBar(mToolbar);
@@ -157,6 +162,9 @@ public class MainActivity extends AppCompatActivity {
         iv_aqi.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if(mCurrentCity.getWeatherId() == null){
+                    return;
+                }
                 showAqiWindow();
             }
         });
@@ -206,9 +214,10 @@ public class MainActivity extends AppCompatActivity {
     //初始化drawer,从数据库里读取城市列表;
     //TODO 如果左滑的话要处理滑动冲突
     private void setUpDrawer() {
+        L.e("Main setUpDrawer");
         RealmResults<SavedCity> allSavedCitys = realm.where(SavedCity.class).findAll();
         allSavedCitys.sort("isSelected", Sort.DESCENDING);//把选中的当前城市排第一个
-        final List<SavedCity> cities = new ArrayList<>();
+        List<SavedCity> cities = new ArrayList<>();
         for (SavedCity c : allSavedCitys) {
             cities.add(c);
         }
@@ -269,6 +278,7 @@ public class MainActivity extends AppCompatActivity {
         swipeMenuListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                L.e("MainActivity clickMenuItem");
                 //把点击的city设为当前城市
                 SavedCity clickedCity = (SavedCity) drawerListAdapter.getItem(position);
                 RealmUtils.SetSelected(realm, clickedCity);
@@ -305,17 +315,19 @@ public class MainActivity extends AppCompatActivity {
                 showAboutWindow();
             }
         });
-        drawerSwipeRefreshLayout.setRefreshing(false);
+//        drawerSwipeRefreshLayout.setRefreshing(false);
+        drawerSwipeRefreshLayout.setEnabled(false);
     }
 
     private void initData() {
+        L.e("MainActivity initData");
         RealmResults<SavedCity> allSavedCitys = realm.where(SavedCity.class).findAll();
         for (SavedCity c : allSavedCitys) {
             if (c.isSelected()) {
                 mCurrentCity = c;
             }
         }
-//        有网就从网上加载，没网就本地读取
+//      有网就从网上加载，没网就本地读取
         if (HttpUtils.isConnected(MainActivity.this)) {
             if (mCurrentCity.getWeatherId() != null) {
                 HttpUtils.get(UrlUtils.getUrl(mCurrentCity.getWeatherId()), new TextHttpResponseHandler() {
@@ -352,11 +364,13 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(MainActivity.this, "当前没有网络，数据可能过期！", Toast.LENGTH_SHORT).show();
             setUpDrawer();
             initDataToView();
+            BroadcastUtils.sendShowNotificationBroadcast(MainActivity.this);
         }
 
     }
 
     private void initDataToView() {
+        L.e("MainActivity initDataToView");
 
         if (mCurrentCity.getCityName() != null) {
             tv_city.setText(mCurrentCity.getCityName());
@@ -389,6 +403,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onResume() {
+        L.e("Main onResume");
 //        initData();
         super.onResume();
 //        BroadcastUtils.sendShowNotificationBroadcast(this);
@@ -399,7 +414,7 @@ public class MainActivity extends AppCompatActivity {
      *判断是否要开启notification和自动更新
      */
     private void initService() {
-        L.e("initService!");
+        L.e("MainActivity initService!");
         if(PrefsUtils.isShowNotification(this)){
             Intent intent = new Intent(this, NotificationService.class);
             startService(intent);
@@ -415,11 +430,14 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        L.e("Main onActivityResult!");
         switch (requestCode) {
             case 1:
                 if (resultCode == RESULT_OK) {
                     if (data.getBooleanExtra("hasSelected", false)) {
                         initData();
+                        L.e("Main onActivityResult initData!");
+
                     }
 
                 }
@@ -449,7 +467,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showWeatherChart(List<Integer> tempList) {
-        Log.e("111","showWeatherChart 开始");
+        Log.e("111", "showWeatherChart 开始");
+
         List<Integer> cold = new ArrayList<>();
         List<Integer> warm = new ArrayList<>();
         for (int i = 0; i < 10; i = i + 2) {
@@ -468,6 +487,8 @@ public class MainActivity extends AppCompatActivity {
      * @param tempList
      */
     private void showChart(List<Integer> tempList) {
+        iv_loading_chart.setVisibility(View.INVISIBLE);
+        lineChartView.setVisibility(View.VISIBLE);
         //两组坐标点：今后5天的最高温和最低温
         List<PointValue> valuesUp = new ArrayList<PointValue>();
         List<PointValue> valuesDown = new ArrayList<PointValue>();
@@ -659,10 +680,12 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
+        L.e("MainActivity onDestory!");
+        super.onDestroy();
         if (realm != null) {
             realm.close();
         }
-        super.onDestroy();
+        handler.removeCallbacksAndMessages(null);
     }
 
     @Override

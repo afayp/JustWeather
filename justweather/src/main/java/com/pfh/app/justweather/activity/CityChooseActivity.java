@@ -175,6 +175,7 @@ public class CityChooseActivity extends AppCompatActivity {
                 intent.putExtra("hasSelected",true);
                 setResult(RESULT_OK, intent);
                 finish();
+                L.e("选择了" +selectedCityName);
             }
         });
         /**

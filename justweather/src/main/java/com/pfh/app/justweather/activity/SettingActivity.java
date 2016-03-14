@@ -66,15 +66,16 @@ public class SettingActivity extends AppCompatActivity{
             }
         });
 
-        item_is_update.setChecked(PrefsUtils.isAutoUpdate(this));
+        boolean isAutoUpdate = PrefsUtils.isAutoUpdate(this);
+        item_is_update.setChecked(isAutoUpdate);
         item_is_update.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (item_is_update.isChecked()) {
+                    item_update_time.setVisibility(View.INVISIBLE);
                     stopService(new Intent(SettingActivity.this, AutoUpdateService.class));
                     item_is_update.setChecked(false);
                     PrefsUtils.changeAutoUpdateState(SettingActivity.this, false);
-                    item_update_time.setVisibility(View.INVISIBLE);
                 } else {
                     startService(new Intent(SettingActivity.this, AutoUpdateService.class));
                     item_is_update.setChecked(true);
@@ -85,6 +86,9 @@ public class SettingActivity extends AppCompatActivity{
         });
 
 
+        if(!isAutoUpdate){
+            item_update_time.setVisibility(View.INVISIBLE);
+        }
         autoupdateTime = PrefsUtils.getAutoupdateTime(this);
         switch (autoupdateTime){
             case 30:
@@ -111,6 +115,7 @@ public class SettingActivity extends AppCompatActivity{
 
     private void showUpdateTimeDialog() {
         L.e("showUpdateTimeDialog中的autoupdateTime： "+autoupdateTime);
+        autoupdateTime = PrefsUtils.getAutoupdateTime(this);
         materialDialog = new MaterialDialog(this);
         materialDialog.setTitle("更新频率");
         View view = View.inflate(this, R.layout.update_time_selection_layout, null);

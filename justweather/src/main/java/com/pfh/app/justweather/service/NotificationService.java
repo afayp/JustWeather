@@ -57,11 +57,12 @@ public class NotificationService extends Service{
     @Override
     public void onCreate() {
         super.onCreate();
+        L.e("NotificationService onCreate!");
 
 
         notificationReceiver = new NotificationReceiver();
         registerReceiver(notificationReceiver, new IntentFilter(ACTION_SHOW_NOTICATION));
-        L.e("service中registerReceiver成功！");
+        L.e("NotificationService中registerReceiver成功！");
 //        BroadcastUtils.sendShowNotificationBroadcast(this);//为什么放这里？因为第一次启动MainActivity中没有城市的时候，广播注册的太晚了
         notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 
@@ -79,6 +80,7 @@ public class NotificationService extends Service{
     @Override
     public void onDestroy() {
         super.onDestroy();
+        L.e("NotificationService onDestory!");
         notificationManager.cancel(1024);
         if(notificationReceiver != null){
             unregisterReceiver(notificationReceiver);
@@ -89,7 +91,7 @@ public class NotificationService extends Service{
     }
 
     private void showNotification() {
-        L.e("service中showNotification 开始！");
+        L.e("NotificationService中showNotification 开始！");
         savedCity = new SavedCity();//为什么把这个放到onCreate中，在service已经启动过的情况下，还是会没有初始化，成员变量不是应该一直在吗
         realm = Realm.getDefaultInstance();
         RealmResults<SavedCity> allSavedCitys = realm.where(SavedCity.class).findAll();
@@ -98,12 +100,11 @@ public class NotificationService extends Service{
                 savedCity = c;
             }
         }
-        Log.e("JustWeather"," service中查询到的当前城市："+savedCity.getCityName());
+        Log.e("JustWeather"," Notificationservice中查询到的当前城市："+savedCity.getCityName());
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
         builder.setShowWhen(false);
         RemoteViews remoteView;
         if(savedCity.getWeatherId() != null){
-            L.e("service中showNotification 开始！不为null");
             builder.setSmallIcon(R.mipmap.ic_sun_black);
             remoteView = new RemoteViews(getPackageName(), R.layout.notification_normal);
             remoteView.setImageViewResource(R.id.iv_notifyTypeIcon,R.mipmap.ic_sun_black);//TODO 根据实际情况分类
@@ -111,20 +112,19 @@ public class NotificationService extends Service{
             remoteView.setTextViewText(R.id.tv_notifyTypeAndTempAndAqi,savedCity.getWeather()+"  "+savedCity.getRealTemp()+"℃"+"  "+AqiUtils.getLevelText(Integer.parseInt(savedCity.getAqi())));
             remoteView.setTextViewText(R.id.tv_notifyUpdateTime,savedCity.getLastUpdateTime()+" 发布");
         }else {
-            L.e("service中showNotification 开始！为null");
+            L.e("Notificationservice中showNotification 开始！为null");
             builder.setSmallIcon(R.mipmap.ic_na_black);
             remoteView = new RemoteViews(getPackageName(), R.layout.notification_nodata);
 
         }
         builder.setContent(remoteView);
         Intent intent = new Intent(this, MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         int requestCode = (int) SystemClock.uptimeMillis();
         PendingIntent pendingIntent = PendingIntent.getActivity(this, requestCode, intent, PendingIntent.FLAG_UPDATE_CURRENT);
         builder.setContentIntent(pendingIntent);
-        NotificationManager mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-//        mNotificationManager.notify(1024,builder.build());
         startForeground(1024, builder.build());
-        L.e("service中showNotification 结束！");
+        L.e("Notificationservice中showNotification 结束！");
 
     }
 
